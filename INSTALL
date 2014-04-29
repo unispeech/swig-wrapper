@@ -1,0 +1,201 @@
+BUILD REQUIREMENTS
+==================
+
+UniMRCP-wrapper requires the UniMRCP SDK installed, or the sources checked
+out and built. Please follow instructions on the UniMRCP website:
+
+	http://www.unimrcp.org/
+
+Build projects (Makefiles, VS solutions etc.) are configured by CMake,
+version 2.8 or higher is required:
+
+	http://www.cmake.org/
+
+If you want to build higher-level language bindings, SWIG version 2 or
+newer is required:
+
+	http://www.swig.org/
+
+For Python binding, Python development headers and libraries are required.
+They are part of Windows installation or in repositories of your distro. See
+
+	http://www.python.org/
+
+For Java binding, JDK development headers are required.
+
+	http://www.java.com/
+
+For UniMRCP-wrapper API reference, Doxygen is used:
+
+	http://www.doxygen.org/
+
+
+BUILD PROCEDURE
+===============
+
+Run CMake. Set location of CMakeLists.txt (solutions/swig-wrapper) as the source
+directory and a subdirectory (solutions/swig-wrapper/build) as the binary directory.
+During configure phase, CMake should find all libraries needed. Then choose projects
+you want to build, the options are:
+
+	WRAP_CPP    - Build C++ wrapper library
+	WRAP_CSHARP - Build C# .NET wrapper library
+	WRAP_JAVA   - Build Java wrapper library
+	WRAP_PYTHON - Build Python module
+
+Modules/libraries are copied to the build/Cpp, build/CSharp and build/Python
+subdirectories respectively with examples. Examples in higher-level languages
+are built separately, but you can choose to build C or C++ examples:
+
+	BUILD_C_EXAMPLE
+	BUILD_CPP_EXAMPLE
+
+Additionally, other options can be specified, such as libraries, headers and tools
+locations, their static/dynamic linkage and so on. Note especially options
+with prefixes:
+
+	APR_*
+	APU_*
+	DOXYGEN_*
+	PYTHON_*
+	SOFIA_*
+	SWIG_*
+	UNIMRCP_*
+
+After configuration, generate project files and build with the selected tool.
+
+Visual Studio:
+	Open build/UniMRCPWrapper.sln and build.
+	If Doxygen was detected, doc project can be built separately.
+
+UNIX:
+	cd build
+	make
+	make doc  # Optional make documentation step
+
+
+BUILD RESULTS AND EXAMPLES
+==========================
+
+After successful build, all necessary files are copied to several
+solutions/swig-wrapper/build subdirectories. For all platforms/languages,
+simple example called UniSynth is provided, that uses standard UniMRCP
+directory layout (i.e. main UniMRCP source trunk directory is accessible from
+solutions/swig-wrapper/build relatively by ../../../trunk or ../../../UniMRCP)
+to load configuration from and to store data to. It takes a text to synthesize
+on MRCP server as an argument and save the resulting audio to a file.
+UniMRCP root directory, file name and UniMRCP profile are part of their source
+code. On Windows, the examples presume x32 (x86) builds, but can be easily
+changed to x64.
+
+C Example
+---------
+build/C/UniSynth.c contains source code to demonstrate the task using low-level
+UniMRCP C API.
+UNIX:
+	./UniSynth_C "The text to synthesize..."
+Windows:
+	:: The batch file sets up PATH to necessary libraries
+	UniSynth.bat "The text to synthesize..."
+
+C++ Wrapper and Example
+-----------------------
+build/Cpp contains headers to include and the library (UniMRCpp) to link.
+build/Cpp/UniSynth.cpp contains the example in C++.
+UNIX:
+	./UniSynth_Cpp "The text to synthesize..."
+Windows:
+	:: The batch file sets up PATH to necessary libraries
+	UniSynth.bat "The text to synthesize..."
+
+C# Wrapper and Example
+----------------------
+build/CSharp (or per-configuration directories) contains native library UniMRCP-NET
+build/CSharp/wrapper contains C# part of the wrapper to include to the project
+build/CSharp/UniSynth.cs contains the example source in C#.
+Unix:
+	# Find mono and C# compiler, compile and run the example
+	./UniSynth.sh "The text to synthesize..."
+Windows:
+	:: Set up PATH, find C# compiler, compile and run the example
+	UniSynth.bat "The text to synthesize..."
+
+Java Wrapper and Example
+--------------------------
+build/Java (or per-configuration directories) contains Java JNI library UniMRCP
+build/Java/wrapper contains Java part of the wrapper (UniMRCP*.java)
+build/Java/UniSynth.java contains the example source in Java.
+Unix:
+	:: Find Java and compiler, compile and run the example
+	./UniSynth.sh "The text to synthesize..."
+Windows:
+	:: Set up PATH, find Java compiler, compile and run the example
+	UniSynth.bat "The text to synthesize..."
+
+Python Wrapper and Example
+--------------------------
+build/Python (or per-configuration directories) contains native python module _UniMRCP
+build/Python/wrapper contains Python part of the wrapper (UniMRCP.py)
+build/Python/UniSynth.py contains the example source in Python.
+Unix:
+	PYTHONPATH=wrapper ./UniSynth.py "The text to synthesize..."
+Windows:
+	:: Set up (PYTHON)PATH and run the example
+	UniSynth.bat "The text to synthesize..."
+
+
+Troubleshooting
+===============
+
+Link errors in Visual Studio. E.g. conflicting LIBCMT(D), _ITERATOR_DEBUG_LEVEL,
+already defined symbols in MSVCRT(D).lib etc.
+
+	Build everything with consistent DLL/non-DLL Runtime Library setting:
+	Properties -> C/C++ -> Code Generation -> Runtime Library
+
+Strange behaviour or crashes when running examples.
+
+	Inconsistent usage of TOO_LONG_MRCP_REQUEST_ID. Check macro definition in both
+	UniMRCP solution and wrapper solution. It must be defined or missing in both
+	consistently. It may be defined in UniMRCP property files (build/[vs]props),
+	project C++ Preprocessor properties, CMake options etc.
+
+
+Building as Single DLL
+======================
+
+Sometimes it is useful (especially on Windows) to build the wrapper as
+a single self-contained library (.NET or Python module etc.) independent of
+other libraries. It is convenient to copy clean UniMRCP sources and dependencies
+to a separate directory. To build statically, roughly follow these steps:
+
+1a. On Windows, if you want to link MSVCRT (C runtime) statically, everything
+    must be built with static MSVCRT (/MT).
+1b. On UNIX, all the prerequisites must be compiled as position independent
+    code (-fPIC).
+
+2. Compile static APR and APR-util libraries. On Windows, these projects are
+   called apr or apr-util (without the lib prefix). Also compile xml (eXpat)
+   project.
+
+3. Compile static Sofia-SIP stack. On Windows, compile pthreads-Win32 library
+   first as a static library with PTW32_STATIC_LIB preprocessor definition.
+   Then open project in libs/sofia-sip/win32/libsofia-sip-ua-static, set
+   correct path to static pthreads-Win32 and define PTW32_STATIC_LIB.
+   It is also appropriate to disable defining EXPORT macro as dllexport
+   in sofia-sip/libsofia-sip-ua/*/*_tag_ref.c.
+
+4. On Windows, patch trunk/build/props or trunk/build/vsprops to link correct
+   static libraries. Do not forget to link xml library as well. (Some project
+   files must be patched manually.)
+   Declare following macros in entire solution: APR_DECLARE_STATIC,
+   APU_DECLARE_STATIC, LIBSOFIA_SIP_UA_STATIC and PTW32_STATIC_LIB.
+
+5. Build UniMRCP with static prerequisites.
+
+6. Run CMake to configure the wrapper. Be sure to check APR_STATIC, APU_STATIC,
+   SOFIA_STATIC and SOFIA_PTW32_STATIC (advanced options). If dynamic
+   libraries are found instead, delete the properties containing the paths
+   (not the *_STATIC options) and reconfigure.
+
+7. Generate project files and build the wrapper.

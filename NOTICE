@@ -1,0 +1,9 @@
+The UniMRCP Wrapper
+Copyright (C) 2014 SpeechTech, s.r.o. http://www.speechtech.cz/en
+Licensed under the Apache License, Version 2.0 (the "License").
+
+This product is dependent on the UniMRCP project licensed under
+the Apache Linese, Version 2.0, as well, which includes a number
+of subcomponents with separate copyright notices and license terms.
+
+Please read LICENSE and NOTICE files of the UniMRCP project.

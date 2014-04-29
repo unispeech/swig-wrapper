@@ -1,0 +1,87 @@
+#include "UniMRCP-wrapper-version.h"
+
+#define RC_STRINGIFY(tok) RC_STRINGIFY_HELPER(tok)
+#define RC_STRINGIFY_HELPER(tok) #tok
+
+#if defined(RC_TARGET_PLATFORM)
+#	define PLATFORM_STR RC_STRINGIFY(RC_TARGET_PLATFORM)
+#elif defined(TARGET_PLATFORM)
+#	define PLATFORM_STR TARGET_PLATFORM
+#else
+#	define PLATFORM_STR "Unknown"
+#endif
+
+#if defined(RC_OUTFILENAME)
+#	define FILENAME_STR RC_STRINGIFY(RC_OUTFILENAME)
+#else
+#	define FILENAME_STR "UniMRCP.dll"
+#endif
+
+#ifndef PRODNAME
+# define PRODNAME SpeechTech MRCP Solution
+#endif
+#define PRODNAME_STR RC_STRINGIFY(PRODNAME)
+
+#ifndef PRODVER_MAJOR
+#	define PRODVER_MAJOR 1
+#endif
+#define PV1  PRODVER_MAJOR
+#define PVS1 RC_STRINGIFY(PV1)
+
+#ifdef PRODVER_MINOR
+#	define PV2  , PRODVER_MINOR
+#	define PVS2 "." RC_STRINGIFY(PRODVER_MINOR)
+#else
+#	define PV2
+#	define PVS2 ""
+#endif
+
+#ifdef PRODVER_PATCH
+#	define PV3  , PRODVER_PATCH
+#	define PVS3 "." RC_STRINGIFY(PRODVER_PATCH)
+#else
+#	define PV3
+#	define PVS3 ""
+#endif
+
+#ifdef PRODVER_TWEAK
+#	define PV4  , PRODVER_TWEAK
+#	define PVS4 "." RC_STRINGIFY(PRODVER_TWEAK)
+#else
+#	define PV4
+#	define PVS4 ""
+#endif
+
+1 VERSIONINFO
+ FILEVERSION UW_VERSION_CSV
+ PRODUCTVERSION PV1 PV2 PV3 PV4
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040504b0"
+        BEGIN
+            VALUE "Comments", UW_LICENSE
+            VALUE "CompanyName", "SpeechTech, s.r.o."
+            VALUE "FileDescription", "SpeechTech MRCP client for " PLATFORM_STR
+            VALUE "FileVersion", UW_VERSION_STRING
+            VALUE "InternalName", FILENAME_STR
+            VALUE "LegalCopyright", "Copyright (C) 2014 SpeechTech, s.r.o."
+            VALUE "OriginalFilename", FILENAME_STR
+            VALUE "ProductName", PRODNAME_STR
+            VALUE "ProductVersion", PVS1 PVS2 PVS3 PVS4
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
