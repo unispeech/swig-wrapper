@@ -254,12 +254,14 @@ if (UNIMRCP_INCLUDE_DIR)
 	string (REGEX REPLACE ".*[ \t]UNI_PATCH_VERSION[ \t]+([0-9]+).*" "\\1" _uni_patch "${_uni_ver}")
 	set (UNIMRCP_VERSION_STRING "${_uni_major}.${_uni_minor}.${_uni_patch}")
 
-	file (STRINGS "${UNIMRCP_INCLUDE_DIR}/uni_revision.h" _uni_rev
-		REGEX "^#define[ \t]+UNI_REVISION[ \t]+[0-9]+")
-	if (_uni_rev)
-		string (REGEX REPLACE ".*[ \t]UNI_REVISION[ \t]+([0-9]+).*" "\\1" _uni_rev "${_uni_rev}")
-		set (UNIMRCP_VERSION_STRING "${UNIMRCP_VERSION_STRING}.${_uni_rev}")
-	endif (_uni_rev)
+	if (EXISTS "${UNIMRCP_INCLUDE_DIR}/uni_revision.h")
+		file (STRINGS "${UNIMRCP_INCLUDE_DIR}/uni_revision.h" _uni_rev
+			REGEX "^#define[ \t]+UNI_REVISION[ \t]+[0-9]+")
+		if (_uni_rev)
+			string (REGEX REPLACE ".*[ \t]UNI_REVISION[ \t]+([0-9]+).*" "\\1" _uni_rev "${_uni_rev}")
+			set (UNIMRCP_VERSION_STRING "${UNIMRCP_VERSION_STRING}.${_uni_rev}")
+		endif (_uni_rev)
+	endif (EXISTS "${UNIMRCP_INCLUDE_DIR}/uni_revision.h")
 endif (UNIMRCP_INCLUDE_DIR)
 
 unset (UNIMRCP_FOUND)
