@@ -38,8 +38,10 @@ find_path (UNIMRCP_SOURCE_DIR "build/uni_version.h" PATHS
 	"${PROJECT_SOURCE_DIR}/../../trunk/"
 	"${PROJECT_SOURCE_DIR}/../../UniMRCP/"
 	"${PROJECT_SOURCE_DIR}/../../unimrcp/"
-	"${PROJECT_SOURCE_DIR}/../../*/")
+	"${PROJECT_SOURCE_DIR}/../../*/"
+	"${PROJECT_SOURCE_DIR}/../")
 set (UNIMRCP_SOURCE_DIR "${UNIMRCP_SOURCE_DIR}" CACHE PATH "Path to UniMRCP source directory")
+set_property (CACHE UNIMRCP_SOURCE_DIR PROPERTY HELPSTRING "Path to UniMRCP source directory")
 set (APR_SOURCE_DIR "${UNIMRCP_SOURCE_DIR}/libs/apr" CACHE PATH "Path to APR source directory")
 set (APU_SOURCE_DIR "${UNIMRCP_SOURCE_DIR}/libs/apr-util" CACHE PATH "Path to APR-util source directory")
 #if (WIN32)
