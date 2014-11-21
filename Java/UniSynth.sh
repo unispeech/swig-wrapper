@@ -49,11 +49,11 @@ fi;
 echo "Java runtime: $JAVA";
 echo "Using Java compiler: $JAVAC";
 read -p "Press enter to compile UniSynth" x;
-$JAVAC UniSynth.java wrapper/*.java
+$JAVAC -classpath . UniSynth.java
 if [ $? -ne 0 ]; then
 	echo "Error compiling UniSynth";
 	exit $?;
 fi;
 
 read -p "Press enter to run UniSynth $*" x;
-$JAVA -classpath .:wrapper -Djava.library.path=. UniSynth $*
+$JAVA -classpath . -Djava.library.path=. UniSynth $*

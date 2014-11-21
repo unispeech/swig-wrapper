@@ -267,10 +267,10 @@ endif (JNI_INCLUDE_DIRS AND NOT JNI_FOUND)
 if (JNI_INCLUDE_DIRS)
 option (WRAP_JAVA "Build UniMRCP for Java" ON)
 if (WRAP_JAVA)
-	set (CMAKE_SWIG_OUTDIR "${CMAKE_CURRENT_BINARY_DIR}/Java/wrapper")
+	set (CMAKE_SWIG_OUTDIR "${CMAKE_CURRENT_BINARY_DIR}/Java/org/unimrcp/swig")
 	set (SWIG_MODULE_JUniMRCP_EXTRA_DEPS UniMRCP-wrapper.h)
 	set_source_files_properties (${WRAPPER_SWIG} PROPERTIES
-		SWIG_FLAGS "")
+		SWIG_FLAGS "-package;org.unimrcp.swig")
 	if (SWIG_HACKS)
 		set_source_files_properties (${WRAPPER_SWIG} PROPERTIES
 			SWIG_MODULE_NAME "../${WRAPPER_BASE}JAVA_wrap")

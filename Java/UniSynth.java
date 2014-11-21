@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.concurrent.Semaphore;
+import org.unimrcp.swig.*;
 
 class UniSynth
 {

@@ -34,14 +34,14 @@ EXIT /B 1
 ECHO Using Java compiler: %JAVAC%
 ECHO Press enter to compile UniSynth
 PAUSE
-"%JAVAC%" UniSynth.java wrapper\*.java
+"%JAVAC%" -classpath . UniSynth.java
 IF ERRORLEVEL 1 (
 	ECHO Error compiling UniSynth
 	EXIT /B 1
 )
 ECHO Press enter to run UniSynth %*
 PAUSE
-"%JAVA%" -classpath .;wrapper -Djava.library.path=Release;RelWithDebInfo;MinSizeRel;Debug;. UniSynth %*
+"%JAVA%" -classpath . -Djava.library.path=Release;RelWithDebInfo;MinSizeRel;Debug;. UniSynth %*
 EXIT /B %ERRORLEVEL%
 
 :try_jdk
