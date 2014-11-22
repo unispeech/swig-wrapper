@@ -276,7 +276,7 @@ if (WRAP_JAVA)
 			SWIG_MODULE_NAME "../${WRAPPER_BASE}JAVA_wrap")
 	endif (SWIG_HACKS)
 	include_directories (${JNI_INCLUDE_DIRS})
-	set (JAVA_EXAMPLES Java/UniSynth.java Java/UniSynth.bat Java/UniSynth.sh)
+	set (JAVA_EXAMPLES Java/UniSynth.java Java/UniSynth.bat Java/UniSynth.sh Java/UniRecog.java Java/UniRecog.bat Java/UniRecog.sh)
 	swig_add_module (JUniMRCP Java ${WRAPPER_SRC}
 		${JAVA_EXAMPLES})
 	source_group (Examples FILES ${JAVA_EXAMPLES})
