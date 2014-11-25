@@ -75,7 +75,7 @@ class UniRecog
     }
 
 
-    private static class UniSynthChannel extends UniMRCPSynthesizerChannel
+    private static class UniRecogChannel extends UniMRCPRecognizerChannel
     {
         private UniRecogTermination term;
         private Semaphore sem;

@@ -41,7 +41,7 @@ IF ERRORLEVEL 1 (
 )
 ECHO Press enter to run UniRecog %*
 PAUSE
-"%JAVA%" -classpath . -Djava.library.path=Release;RelWithDebInfo;MinSizeRel;Debug;. UniRecoog %*
+"%JAVA%" -classpath . -Djava.library.path=Release;RelWithDebInfo;MinSizeRel;Debug;. UniRecog %*
 EXIT /B %ERRORLEVEL%
 
 :try_jdk
