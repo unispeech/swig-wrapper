@@ -630,7 +630,7 @@ void UniMRCPStreamRx::SetData(void const* buf, size_t len)
 		memcpy(frm->codec_frame.buffer, buf, len);
 	frm->type |= MEDIA_FRAME_TYPE_AUDIO;
 #ifdef LOG_STREAM_DATA
-	printf("%s UniMRCPStreamTx::SetData %lu bytes:\n", swig_target_platform,
+	printf("%s UniMRCPStreamRx::SetData %lu bytes:\n", swig_target_platform,
 		static_cast<unsigned long>(len));
 	for (size_t i = 0; i < len; i++)
 		printf("%02x", static_cast<unsigned char const*>(buf)[i]);
