@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -212,7 +213,7 @@ int main(int argc, char const* argv[])
 	if (apr_initialize() != APR_SUCCESS) FAIL("Cannot initialize APR platform");
 	pool = apt_pool_create();
 	if (!pool) FAIL("Not enough memory");
-	for (i = 0; (i < argc - 2) && (i < 100); i += 2) {
+	for (i = 0; (i < argc - 2) && (i < 50); i += 2) {
 		cattext[2 * i].iov_base = (void*) argv[i + 1];
 		cattext[2 * i].iov_len = strlen(argv[i + 1]);
 		cattext[2 * i + 1].iov_base = (void*) &SP;
@@ -231,7 +232,7 @@ int main(int argc, char const* argv[])
 	printf("Write output to file: %s\n", outfile);
 	printf("\n");
 	printf("Press enter to start the session...\n");
-	getchar();
+	(void) getchar();
 
 	apt_log_instance_create(APT_LOG_OUTPUT_NONE, APT_PRIO_DEBUG, pool);
 	apt_log_ext_handler_set(UniSynth_logger);
@@ -284,6 +285,6 @@ cleanup:
 	if (pool) apr_pool_destroy(pool);
 	apr_terminate();
 	puts("Program finished, memory released. Press any key to exit.");
-	getchar();
+	(void) getchar();
 	return err;
 }

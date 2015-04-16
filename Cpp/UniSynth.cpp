@@ -241,8 +241,12 @@ int main(int argc, char const* const argv[])
 	} catch (...) {
 		cout << endl << "Unknown error occured" << endl;
 	}
-	UniMRCPClient::StaticDeinitialize();
-	cout << endl << "Program finished, memory released. Press any key to exit." << endl;
+	try {
+		UniMRCPClient::StaticDeinitialize();
+		cout << endl << "Program finished, memory released. Press any key to exit." << endl;
+	} catch (UniMRCPException const& ex) {
+		cout << endl << "Failed to deinitialize platform: " << ex.msg << endl;
+	}
 	cin.get();
 	return err;
 }

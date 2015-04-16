@@ -941,6 +941,8 @@ UniMRCPAudioTermination::UniMRCPAudioTermination(UniMRCPClientSession* session) 
 	streamTx(NULL),
 	stmTx(NULL),
 	dg_band(-1),
+	dg_tone(70),
+	dg_silence(50),
 	dd_band(-1)
 {
 	caps = mpf_stream_capabilities_create(STREAM_DIRECTION_DUPLEX, mrcp_application_session_pool_get(sess));
@@ -1045,7 +1047,7 @@ apt_bool_t UniMRCPAudioTermination::StmOpenRx(mpf_audio_stream_t* stream, mpf_co
 	mpf_codec_descriptor_t const* d = stream->rx_descriptor;
 	UniMRCPStreamRx* sr;
 	if (d)
-		sr = t->OnStreamOpenRx(d->enabled == TRUE, d->payload_type, NULL,  // d->name.buf,
+		sr = t->OnStreamOpenRx(d->enabled == TRUE, d->payload_type, d->name.buf,
 			d->format.buf, d->channel_count, d->sampling_rate);
 	else
 		sr = t->OnStreamOpenRx(false, 0, NULL, NULL, 0, 0);
@@ -1057,7 +1059,7 @@ apt_bool_t UniMRCPAudioTermination::StmOpenRx(mpf_audio_stream_t* stream, mpf_co
 		else
 			sr->OnClose();
 	}
-	if (!t->streamRx) return FALSE;
+	if (!sr || !t->streamRx) return FALSE;
 	sr->term = t;
 	t->stmRx = stream;
 	return TRUE;
@@ -1114,7 +1116,7 @@ apt_bool_t UniMRCPAudioTermination::StmOpenTx(mpf_audio_stream_t* stream, mpf_co
 	mpf_codec_descriptor_t const* d = stream->tx_descriptor;
 	UniMRCPStreamTx* st;
 	if (d)
-		st = t->OnStreamOpenTx(d->enabled == TRUE, d->payload_type, NULL,  // d->name.buf,
+		st = t->OnStreamOpenTx(d->enabled == TRUE, d->payload_type, d->name.buf,
 			d->format.buf, d->channel_count, d->sampling_rate);
 	else
 		st = t->OnStreamOpenTx(false, 0, NULL, NULL, 0, 0);
@@ -1126,7 +1128,7 @@ apt_bool_t UniMRCPAudioTermination::StmOpenTx(mpf_audio_stream_t* stream, mpf_co
 		else
 			st->OnClose();
 	}
-	if (!t->streamTx) return FALSE;
+	if (!st || !t->streamTx) return FALSE;
 	st->term = t;
 	t->stmTx = stream;
 	return TRUE;
