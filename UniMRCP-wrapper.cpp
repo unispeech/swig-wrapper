@@ -237,8 +237,13 @@ void UniMRCPClient::StaticInitialize(char const* root_dir,
 	if (apt_log_output_mode_check(APT_LOG_OUTPUT_FILE) == TRUE)
 	{
 		/* open the log file */
+#if defined(UNI_VERSION_AT_LEAST) && UNI_VERSION_AT_LEAST(1, 3, 0)
+		apt_log_file_open(apt_dir_layout_path_get(dirLayout, APT_LAYOUT_LOG_DIR),
+			log_fname, max_log_fsize, max_log_fcount, FALSE, staticPool);
+#else
 		apt_log_file_open(dirLayout->log_dir_path, log_fname,
 			max_log_fsize, max_log_fcount, FALSE, staticPool);
+#endif
 	}
 	apt_log(APT_LOG_MARK, APT_PRIO_INFO, "Initialized UniMRCP for %s: log_root_dir(%s) "
 		"log_prio(%d) log_out(%d) log_fname(%s) max_log_fsize(%u) max_log_fcount(%u)",
@@ -622,7 +627,7 @@ void UniMRCPStreamRx::SetData(void const* buf, size_t len)
 	if (!frm) return;
 	if (len > frm->codec_frame.size)
 		len = frm->codec_frame.size;
-	memcpy(frm->codec_frame.buffer, buf, len);
+		memcpy(frm->codec_frame.buffer, buf, len);
 	frm->type |= MEDIA_FRAME_TYPE_AUDIO;
 #ifdef LOG_STREAM_DATA
 	printf("%s UniMRCPStreamTx::SetData %lu bytes:\n", swig_target_platform,
