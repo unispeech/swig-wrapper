@@ -973,7 +973,7 @@ public:
 	/** @brief Called whenever a frame is needed */
 	WRAPPER_DECL virtual bool ReadFrame();
 
-private:
+protected:
 	/** @brief Initialize internal data after user-defined creation procedure */
 	WRAPPER_DECL virtual bool OnOpenInternal(UniMRCPAudioTermination const* term, mpf_audio_stream_t const* stm);
 	/** @brief Clean-up after OnClose() event handled */
@@ -1012,7 +1012,7 @@ public:
 	/** @brief Automatic data transmitter. Still can be overriden! */
 	virtual bool ReadFrame();
 
-private:
+protected:
 	virtual bool OnOpenInternal(UniMRCPAudioTermination const* term, mpf_audio_stream_t const* stm);
 	virtual void OnCloseInternal();
 
