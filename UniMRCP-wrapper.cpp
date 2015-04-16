@@ -778,8 +778,6 @@ bool UniMRCPStreamRxBuffered::ReadFrame()
 	apr_thread_mutex_lock(mutex);
 	if ((!flush && (len < frm->codec_frame.size)) || (first && !first->len)) {
 		apr_thread_mutex_unlock(mutex);
-		if (dtmf_gen)
-			mpf_dtmf_generator_put_frame(dtmf_gen, frm);
 		return false;
 	}
 	while (first && ((copied < frm->codec_frame.size) || !first->len)) {
@@ -791,10 +789,12 @@ bool UniMRCPStreamRxBuffered::ReadFrame()
 		copied += size;
 		if (pos >= first->len) {
 			if (first->digit) {
+				apt_bool_t ret = FALSE;
 				char const digits[2] = {first->digit, 0};
 				if (dtmf_gen)
-					mpf_dtmf_generator_enqueue(dtmf_gen, digits);
-				apt_log(APT_LOG_MARK, APT_PRIO_INFO, "Sending DTMF: %s", digits);
+					ret = mpf_dtmf_generator_enqueue(dtmf_gen, digits);
+				apt_log(APT_LOG_MARK, ret ? APT_PRIO_INFO : APT_PRIO_WARNING,
+					"Sending DTMF: %s (%s)", digits, ret ? "OK" : "Failed");
 			}
 			pos = 0;
 			chunk_t *ch = first;
@@ -815,8 +815,6 @@ bool UniMRCPStreamRxBuffered::ReadFrame()
 		memset(static_cast<char*>(frm->codec_frame.buffer) + copied, 0,
 			frm->codec_frame.size - copied);
 	}
-	if (dtmf_gen)
-		mpf_dtmf_generator_put_frame(dtmf_gen, frm);
 	return true;
 }
 
@@ -1256,10 +1254,10 @@ apt_bool_t UniMRCPAudioTermination::StmReadFrame(mpf_audio_stream_t* stream, mpf
 	bool ret;
 	UniMRCPAudioTermination* t = reinterpret_cast<UniMRCPAudioTermination*>(stream->obj);
 	if (t && t->streamRx) {
+		ret = t->streamRx->ReadFrame();
 		t->streamRx->frm = frame;
 		if (t->streamRx->dtmf_gen)
 			mpf_dtmf_generator_put_frame(t->streamRx->dtmf_gen, frame);
-		ret = t->streamRx->ReadFrame();
 	} else
 		ret = FALSE;
 #ifdef LOG_STREAM_FRAMES
