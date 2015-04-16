@@ -36,6 +36,7 @@
 #include <stdlib.h>  // For malloc, realloc and free
 #include "apr_general.h"
 #include "apr_atomic.h"
+#include "apr_mmap.h"
 #include "apt_pool.h"
 #include "apt_dir_layout.h"
 #include "apt_log.h"
@@ -70,6 +71,11 @@
 /** @brief Log line formatting buffer */
 #ifndef MAX_LOG_ENTRY_SIZE
 #	define MAX_LOG_ENTRY_SIZE 4096
+#endif
+
+/** @brief Memory page size (for MMap) */
+#ifndef PAGE_SIZE
+#	define PAGE_SIZE 4096
 #endif
 
 
@@ -845,6 +851,155 @@ void UniMRCPStreamRxBuffered::OnCloseInternal()
 		mutex = NULL;
 	}
 	UniMRCPStreamRx::OnCloseInternal();
+}
+
+
+UniMRCPStreamRxMemory::UniMRCPStreamRxMemory(void const* mem, size_t size, bool copy /*= true*/, StreamRxMemoryEnd onend /*= SRM_NOTHING*/) THROWS(UniMRCPException) :
+	UniMRCPStreamRx()
+{
+	SetMemory(mem, size, copy, onend);
+}
+
+
+UniMRCPStreamRxMemory::~UniMRCPStreamRxMemory()
+{
+	Close();
+}
+
+
+void UniMRCPStreamRxMemory::SetMemory(void const* mem, size_t size, bool copy /*= true*/, StreamRxMemoryEnd onend /*= SRM_NOTHING*/) THROWS(UniMRCPException)
+{
+	Close();
+	if (copy) {
+		this->mem = static_cast<char*>(malloc(size));
+		if (!this->mem)
+			UNIMRCP_THROW("Not enough memory to copy memory block");
+		this->copied = true;
+	} else {
+		this->mem = static_cast<char const*>(mem);
+	}
+	this->size = size;
+	this->onend = onend;
+	pos = 0;
+}
+
+
+void UniMRCPStreamRxMemory::Rewind()
+{
+	pos = 0;
+}
+
+
+void UniMRCPStreamRxMemory::Close()
+{
+	if (mem && copied)
+		free(const_cast<char*>(mem));
+	mem = NULL;
+	copied = false;
+	size = 0;
+	pos = 0;
+}
+
+
+void UniMRCPStreamRxMemory::OnEndOfPlayback()
+{
+}
+
+
+bool UniMRCPStreamRxMemory::ReadFrame()
+{
+	if (!mem || !size)
+		return false;
+	if ((pos >= size) && (onend == SRM_ZEROS)) {
+		SetData(NULL, 0);  // Send out zeros
+		return true;
+	}
+	size_t sz = GetDataSize();
+	if (sz > size - pos)
+		sz = size - pos;
+	SetData(mem + pos, sz);
+	pos += sz;
+	if (pos < size)
+		return true;
+	OnEndOfPlayback();
+	switch (onend) {
+	case SRM_REWIND:
+		Rewind();
+	case SRM_NOTHING:
+	case SRM_ZEROS:
+		break;
+	}
+	return true;
+}
+
+
+void UniMRCPStreamRxMemory::OnCloseInternal()
+{
+	Close();
+	UniMRCPStreamRx::OnCloseInternal();
+}
+
+
+UniMRCPStreamRxFile::UniMRCPStreamRxFile(char const* filename, size_t offset /*= 0*/, StreamRxMemoryEnd onend /*= SRM_NOTHING*/) :
+	UniMRCPStreamRxMemory(NULL, 0, false, onend),
+	filename(filename),
+	offset(offset),
+	file(NULL),
+	mmap(NULL)
+{
+}
+
+
+bool UniMRCPStreamRxFile::OnOpenInternal(UniMRCPAudioTermination const* term, mpf_audio_stream_t const* stm)
+{
+	if (!UniMRCPStreamRxMemory::OnOpenInternal(term, stm))
+		return false;
+	apr_pool_t* pool = mrcp_application_session_pool_get(term->sess);
+	apr_status_t status;
+	status = apr_file_open(&file, filename, APR_FOPEN_READ | APR_FOPEN_BINARY, APR_FPROT_OS_DEFAULT, pool);
+	if (status != APR_SUCCESS) {
+		apt_log(APT_LOG_MARK, APT_PRIO_WARNING, "Error opening file %s: %d %pm", filename, status, &status);
+		return false;
+	}
+	apr_finfo_t finfo;
+	status = apr_file_info_get(&finfo, APR_FINFO_SIZE, file);
+	if (status != APR_SUCCESS) {
+		apt_log(APT_LOG_MARK, APT_PRIO_WARNING, "Error getting size of file %s: %d %pm", filename, status, &status);
+		apr_file_close(file);
+		return false;
+	}
+	if ((finfo.size < 0) || (offset >= static_cast<size_t>(finfo.size))) {
+		apt_log(APT_LOG_MARK, APT_PRIO_WARNING, "Offest %"APR_SIZE_T_FMT" beyond file size %"APR_OFF_T_FMT, offset, finfo.size);
+		return false;
+	}
+	apr_size_t poffset = offset & ~(PAGE_SIZE - 1);
+	apr_size_t psize = static_cast<apr_size_t>(finfo.size - poffset);
+	status = apr_mmap_create(&mmap, file, poffset, psize, APR_MMAP_READ, pool);
+	if (status != APR_SUCCESS) {
+		apt_log(APT_LOG_MARK, APT_PRIO_WARNING, "Error mmapping file %s: %d %pm", filename, status, &status);
+		apr_file_close(file);
+		return false;
+	}
+	SetMemory(static_cast<char*>(mmap->mm) + offset - poffset, static_cast<apr_size_t>(finfo.size) - offset, false, onend);
+	return true;
+}
+
+
+void UniMRCPStreamRxFile::Close()
+{
+	UniMRCPStreamRxMemory::Close();
+	if (mmap) {
+		apr_status_t status = apr_mmap_delete(mmap);
+		if (status != APR_SUCCESS)
+			apt_log(APT_LOG_MARK, APT_PRIO_WARNING, "Error unmmapping file %s: %d %pm", filename, status, &status);
+		mmap = NULL;
+	}
+	if (file) {
+		apr_status_t status = apr_file_close(file);
+		if (status != APR_SUCCESS)
+			apt_log(APT_LOG_MARK, APT_PRIO_WARNING, "Error closing file %s: %d %pm", filename, status, &status);
+		file = NULL;
+	}
 }
 
 

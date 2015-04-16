@@ -314,6 +314,8 @@
 /* Opaque structures */
 struct apr_pool_t;                //< APR memory pool opaque C structure
 struct apr_thread_mutex_t;        //< APR mutex opaque C structure
+struct apr_file_t;                //< APR file opaque C structure
+struct apr_mmap_t;                //< APR memory mapping opaque C structure
 struct mrcp_client_t;             //< MRCP client opaque C structure
 struct mrcp_application_t;        //< MRCP application opaque C structure
 struct mrcp_app_message_t;        //< MRCP application message opaque C structure
@@ -1039,6 +1041,73 @@ private:
 
 
 /**
+ * @brief Send out audio from a block of memory.
+ * @see UniMRCPStreamRx
+ */
+class UniMRCPStreamRxMemory : public UniMRCPStreamRx {
+public:
+	/** @brief Behaviour of the UniMRCPStreamRxMemory at the end of the memory block */
+	enum StreamRxMemoryEnd {
+		SRM_NOTHING = 0,  ///< Do not emit audio frames
+		SRM_ZEROS,        ///< Emit silence (zeros)
+		SRM_REWIND        ///< Rewind and play again
+	};
+
+	/** @brief Create in UniMRCPAudioTermination::OnStreamOpenRx() */
+	WRAPPER_DECL UniMRCPStreamRxMemory(void const* mem, size_t size, bool copy = true, StreamRxMemoryEnd onend = SRM_NOTHING) THROWS(UniMRCPException);
+	WRAPPER_DECL virtual ~UniMRCPStreamRxMemory();
+
+	/** @brief Set data to send out */
+	WRAPPER_DECL void SetMemory(void const* mem, size_t size, bool copy = true, StreamRxMemoryEnd onend = SRM_NOTHING) THROWS(UniMRCPException);
+	/** @brief Rewind memory block and play from the start */
+	WRAPPER_DECL void Rewind();
+	/** @brief Stop playback and free the memory block if copied */
+	virtual void Close();
+
+public:
+	/** @brief Called when end of the memory block reached */
+	virtual void OnEndOfPlayback();
+	/** @brief Automatic data transmitter. Still can be overriden! */
+	virtual bool ReadFrame();
+
+protected:
+	virtual void OnCloseInternal();
+
+protected:
+	StreamRxMemoryEnd onend; ///< What to do when playback complete
+
+private:
+	char const* mem;         ///< Pointer to the memory block
+	size_t      size;        ///< Size of the memory block
+	bool        copied;      ///< If true, we must free the block
+	size_t      pos;         ///< Current position in the block
+};
+
+
+/**
+ * @brief Send out audio from a file. Uses memory mapping.
+ * @see UniMRCPStreamRxMemory
+ */
+class UniMRCPStreamRxFile : public UniMRCPStreamRxMemory {
+public:
+	/** @brief Create in UniMRCPAudioTermination::OnStreamOpenRx() */
+	WRAPPER_DECL UniMRCPStreamRxFile(char const* filename, size_t offset = 0, StreamRxMemoryEnd onend = SRM_NOTHING);
+
+	/** @brief Close the file immediately */
+	virtual void Close();
+
+protected:
+	virtual bool OnOpenInternal(UniMRCPAudioTermination const* term, mpf_audio_stream_t const* stm);
+
+private:
+	char const* filename;
+	size_t      offset;
+	apr_file_t* file;
+	apr_mmap_t* mmap;
+};
+
+
+/**
  * @brief Incoming media stream (TX from the point of view of server)
  */
 class UniMRCPStreamTx {
@@ -1134,6 +1203,7 @@ private:
 	friend class UniMRCPStreamTx;
 	friend class UniMRCPStreamRx;
 	friend class UniMRCPStreamRxBuffered;
+	friend class UniMRCPStreamRxFile;
 };
 
 
