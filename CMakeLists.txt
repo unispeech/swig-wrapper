@@ -145,6 +145,26 @@ if (PRODUCT_NAME)
 endif (PRODUCT_NAME)
 add_definitions (${UW_DEFINES})
 
+set (WRAPPER_NATIVE
+	UniMRCP-wrapper.cpp
+	UniMRCP-wrapper.h
+	UniMRCP-wrapper-version.h)
+if (WIN32)
+	set (WRAPPER_NATIVE ${WRAPPER_NATIVE}
+		UniMRCP-wrapper.rc)
+endif (WIN32)
+set (WRAPPER_DEFS)
+
+macro (copy_example file)
+	add_custom_command (
+		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${file}"
+		COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/${file}" "${CMAKE_CURRENT_BINARY_DIR}/${file}"
+		MAIN_DEPENDENCY "${file}"
+		COMMENT "Copying example ${file}"
+		VERBATIM)
+endmacro (copy_example)
+
+
 find_package (SWIG)
 if (SWIG_FOUND)
 
@@ -157,18 +177,9 @@ if (SWIG_HACKS)
 endif (SWIG_HACKS)
 set (WRAPPER_BASE UniMRCP-wrapper)
 set (WRAPPER_SWIG ${WRAPPER_BASE}.i)
-set (WRAPPER_NATIVE
-	UniMRCP-wrapper.cpp
-	UniMRCP-wrapper.h
-	UniMRCP-wrapper-version.h)
-if (WIN32)
-	set (WRAPPER_NATIVE ${WRAPPER_NATIVE}
-		UniMRCP-wrapper.rc)
-endif (WIN32)
 set (WRAPPER_SRC ${WRAPPER_SWIG} ${WRAPPER_NATIVE})
 set (CMAKE_SWIG_FLAGS "-nodefaultctor;-nodefaultdtor;-Wall;-Wallkw;-Wextra;${UW_DEFINES}")
 option (SAFE_ARRAYS "Use safe array passing (e.g. marshalling instead of pinning where available)" ON)
-set (WRAPPER_DEFS WRAPPER)
 if (SAFE_ARRAYS)
 	set (CMAKE_SWIG_FLAGS ${CMAKE_SWIG_FLAGS} -DSAFE_ARRAYS)
 	set (WRAPPER_DEFS ${WRAPPER_DEFS} SAFE_ARRAYS)
@@ -179,15 +190,6 @@ if (CPP_EXPORT)
 endif (CPP_EXPORT)
 set_source_files_properties (${WRAPPER_SWIG} PROPERTIES
 	CPLUSPLUS ON)
-
-macro (copy_example file)
-	add_custom_command (
-		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${file}"
-		COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/${file}" "${CMAKE_CURRENT_BINARY_DIR}/${file}"
-		MAIN_DEPENDENCY "${file}"
-		COMMENT "Copying example ${file}"
-		VERBATIM)
-endmacro (copy_example)
 
 option (WRAP_CSHARP "Build UniMRCP for C# .NET" ON)
 if (WRAP_CSHARP)
@@ -208,7 +210,7 @@ if (WRAP_CSHARP)
 	endforeach (ex)
 	set (NET_LIBNAME "${CMAKE_SHARED_MODULE_PREFIX}UniMRCP-NET${CMAKE_SHARED_MODULE_SUFFIX}")
 	set_target_properties (${SWIG_MODULE_UniMRCP-NET_REAL_NAME} PROPERTIES
-		COMPILE_DEFINITIONS "RC_TARGET_PLATFORM=.NET;RC_OUTFILENAME=${NET_LIBNAME};${WRAPPER_DEFS}"
+		COMPILE_DEFINITIONS "RC_TARGET_PLATFORM=.NET;RC_OUTFILENAME=${NET_LIBNAME};WRAPPER;${WRAPPER_DEFS}"
 		LIBRARY_OUTPUT_DIRECTORY CSharp)
 	adjust_cflags (${SWIG_MODULE_UniMRCP-NET_REAL_NAME})
 	if (SIGN)
@@ -242,7 +244,7 @@ if (WRAP_PYTHON)
 		set (py_suffix ${CMAKE_SHARED_MODULE_SUFFIX})
 	endif (WIN32)
 	set_target_properties (${SWIG_MODULE_PyUniMRCP_REAL_NAME} PROPERTIES
-		COMPILE_DEFINITIONS "RC_TARGET_PLATFORM=Python;RC_OUTFILENAME=_UniMRCP${py_suffix};${WRAPPER_DEFS}"
+		COMPILE_DEFINITIONS "RC_TARGET_PLATFORM=Python;RC_OUTFILENAME=_UniMRCP${py_suffix};WRAPPER;${WRAPPER_DEFS}"
 		OUTPUT_NAME _UniMRCP
 		LIBRARY_OUTPUT_DIRECTORY Python)
 	# Workaround for buggy SelectLibraryConfigurations
@@ -289,7 +291,7 @@ if (WRAP_JAVA)
 		set (J_LIBNAME "${CMAKE_SHARED_MODULE_PREFIX}UniMRCP${CMAKE_SHARED_MODULE_SUFFIX}")
 	endif (APPLE)
 	set_target_properties (${SWIG_MODULE_JUniMRCP_REAL_NAME} PROPERTIES
-		COMPILE_DEFINITIONS "RC_TARGET_PLATFORM=Java;RC_OUTFILENAME=${J_LIBNAME};${WRAPPER_DEFS}"
+		COMPILE_DEFINITIONS "RC_TARGET_PLATFORM=Java;RC_OUTFILENAME=${J_LIBNAME};WRAPPER;${WRAPPER_DEFS}"
 		OUTPUT_NAME UniMRCP
 		LIBRARY_OUTPUT_DIRECTORY Java)
 	adjust_cflags (${SWIG_MODULE_JUniMRCP_REAL_NAME})
@@ -300,6 +302,7 @@ endif (WRAP_JAVA)
 endif (JNI_INCLUDE_DIRS)
 
 endif (SWIG_FOUND)
+
 
 find_package (Doxygen)
 if (DOXYGEN_FOUND)
@@ -315,7 +318,6 @@ if (WRAP_CPP)
 	add_library (UniMRCpp ${WRAPPER_NATIVE})
 	set (CPP_LIBNAME "${CMAKE_SHARED_MODULE_PREFIX}UniMRCpp${CMAKE_SHARED_MODULE_SUFFIX}")
 	set (CPP_WRAPPER_DEFS ${WRAPPER_DEFS})
-	list (REMOVE_ITEM CPP_WRAPPER_DEFS WRAPPER)
 	set_target_properties (UniMRCpp PROPERTIES
 		ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Cpp"
 		LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Cpp"
