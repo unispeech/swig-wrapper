@@ -627,7 +627,10 @@ void UniMRCPStreamRx::SetData(void const* buf, size_t len)
 	if (!frm) return;
 	if (len > frm->codec_frame.size)
 		len = frm->codec_frame.size;
+	if (buf && len)
 		memcpy(frm->codec_frame.buffer, buf, len);
+	memset(static_cast<char*>(frm->codec_frame.buffer) + len,
+		0, frm->codec_frame.size - len);
 	frm->type |= MEDIA_FRAME_TYPE_AUDIO;
 #ifdef LOG_STREAM_DATA
 	printf("%s UniMRCPStreamRx::SetData %lu bytes:\n", swig_target_platform,
