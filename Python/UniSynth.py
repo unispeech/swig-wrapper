@@ -12,9 +12,9 @@ if not os.path.isdir(ROOT_DIR):
 if not os.path.isdir(ROOT_DIR):
     ROOT_DIR = "../../../../unimrcp"
 # UniMRCP profile to use for communication with server
-MRCP_PROFILE = "uni1";
+MRCP_PROFILE = "uni1"
 # File to write synthesized text to (ROOT_DIR/data/PCM_OUT_FILE)
-PCM_OUT_FILE = "UniSynth.pcm";
+PCM_OUT_FILE = "UniSynth.pcm"
 
 # Import UniMRCP symbols
 from UniMRCP import *
@@ -176,9 +176,9 @@ except:
     print "Unknown error occured"
 
 # Ensure correct destruction order (do not let GC decide)
-if chan: del chan
-if sess: del sess
-if client: del client
+chan = None
+sess = None
+client = None
 
 UniMRCPClient.StaticDeinitialize()
 print "Program finished, memory released. Press enter to exit."
