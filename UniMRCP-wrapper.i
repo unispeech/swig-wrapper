@@ -28,6 +28,8 @@
 %feature("director") UniMRCPAudioTermination;
 %feature("director") UniMRCPStreamRx;
 %feature("director") UniMRCPStreamRxBuffered;
+%feature("director") UniMRCPStreamRxMemory;
+%feature("director") UniMRCPStreamRxFile;
 %feature("director") UniMRCPStreamTx;
 
 %ignore TARGET_PLATFORM;
@@ -69,16 +71,19 @@
 		%typemap(ctype)   void FIXED[] "void*"
 		%typemap(imtype)  void FIXED[] "IntPtr"
 		%typemap(cstype)  void FIXED[] "byte[]"
-		%typemap(csin,
-		         pre=       "    fixed (byte* swig_ptrTo_$csinput = $csinput) {",
-		         terminator="    }")
+		%typemap(csin, pre="    fixed (byte* swig_ptrTo_$csinput = $csinput)")
 		                  void FIXED[] "(IntPtr)swig_ptrTo_$csinput"
-
 		%apply void FIXED[] {void*}
-		%csmethodmodifiers GetData "public unsafe"
-		%csmethodmodifiers SetData "public unsafe"
-		%csmethodmodifiers GetBody "public unsafe"
-		%csmethodmodifiers SetBody "public unsafe"
+
+		// Hack to allow pinning in the constructor
+		%typemap(imtype, out="unsafe IntPtr")  UniMRCPStreamRxMemory* "HandleRef"
+
+		%csmethodmodifiers UniMRCPStreamRx::SetData "public unsafe"
+		%csmethodmodifiers UniMRCPStreamRxBuffered::AddData "public unsafe"
+		%csmethodmodifiers UniMRCPStreamRxMemory::SetMemory "public unsafe"
+		%csmethodmodifiers UniMRCPStreamTx::GetData "public unsafe"
+		%csmethodmodifiers UniMRCPMessage::GetBody "public unsafe"
+		%csmethodmodifiers UniMRCPMessage::SetBody "public unsafe"
 #	endif  // SAFE_ARRAYS_ELSE
 
 	%ignore UniMRCPException;
@@ -107,6 +112,7 @@
 		$1 = ($1_ltype) buff;
 		$2 = ($2_ltype) size;
 	}
+	%apply (void const* buf, size_t len) { (void const* mem, size_t size) }
 
 	%typemap(in) (void* buf, size_t len)
 			(int res, Py_ssize_t size = 0, void *buff = 0) {
@@ -190,6 +196,7 @@
 	%include <typemaps.i>
 	%apply unsigned short& OUTPUT {unsigned short& major, unsigned short& minor, unsigned short& patch};
 
+	%apply (char *STRING, size_t LENGTH) { (void const* mem, size_t size) }
 	%apply (char *STRING, size_t LENGTH) { (void const* buf, size_t len) }
 	%apply (char *STRING, size_t LENGTH) { (void* buf, size_t len) }
 
