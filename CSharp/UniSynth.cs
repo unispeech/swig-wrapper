@@ -69,7 +69,7 @@ class UniSynth
                 return true;
             if (buf == null)
                 buf = new byte[frameSize];
-            GetData(buf, frameSize);
+            GetData(buf);
             f.Write(buf, 0, (int) frameSize);
             return true;
         }

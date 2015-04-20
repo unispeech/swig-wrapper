@@ -91,6 +91,29 @@
 		%csmethodmodifiers UniMRCPMessage::SetBody "public unsafe"
 #	endif  // SAFE_ARRAYS_ELSE
 
+	%typemap(cscode) UniMRCPStreamRx %{
+	public void SetData(byte[] buf) {SetData(buf, (uint)buf.Length);}
+	%}
+	%typemap(cscode) UniMRCPStreamRxBuffered %{
+	public void AddData(byte[] buf) {AddData(buf, (uint)buf.Length);}
+	%}
+	%typemap(cscode) UniMRCPStreamRxMemory %{
+	public UniMRCPStreamRxMemory(byte[] mem, bool copy, UniMRCPStreamRxMemory.StreamRxMemoryEnd onend) : this(mem, (uint)mem.Length, copy, onend) {}
+	public UniMRCPStreamRxMemory(byte[] mem, bool copy) : this(mem, (uint)mem.Length, copy) {}
+	public UniMRCPStreamRxMemory(byte[] mem) : this(mem, (uint)mem.Length) {}
+
+	public void SetMemory(byte[] mem, bool copy, UniMRCPStreamRxMemory.StreamRxMemoryEnd onend) {SetMemory(mem, (uint)mem.Length, copy, onend);}
+	public void SetMemory(byte[] mem, bool copy) {SetMemory(mem, (uint)mem.Length, copy);}
+	public void SetMemory(byte[] mem) {SetMemory(mem, (uint)mem.Length);}
+	%}
+	%typemap(cscode) UniMRCPStreamTx %{
+	public void GetData(byte[] buf) {GetData(buf, (uint)buf.Length);}
+	%}
+	%typemap(cscode) UniMRCPMessage %{
+	public void GetBody(byte[] buf) {GetBody(buf, (uint)buf.Length);}
+	public void SetBody(byte[] buf) {SetBody(buf, (uint)buf.Length);}
+	%}
+
 	%ignore UniMRCPException;
 	%typemap(throws, canthrow=1) UniMRCPException {
 		SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, $1.msg);
