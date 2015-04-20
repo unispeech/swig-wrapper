@@ -32,6 +32,12 @@
 %feature("director") UniMRCPStreamRxFile;
 %feature("director") UniMRCPStreamTx;
 
+%feature("nodirector") UniMRCPStreamRxBuffered::ReadFrame;
+%feature("nodirector") UniMRCPStreamRxMemory::ReadFrame;
+%feature("nodirector") UniMRCPStreamRxMemory::Close;
+%feature("nodirector") UniMRCPStreamRxFile::ReadFrame;
+%feature("nodirector") UniMRCPStreamRxFile::Close;
+
 %ignore TARGET_PLATFORM;
 %ignore swig_target_platform;
 %ignore unimrcp_client_app_name;
