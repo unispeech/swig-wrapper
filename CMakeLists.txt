@@ -92,6 +92,14 @@ if (MSVCRT_STATIC)
 	static_flags (CXX)
 endif (MSVCRT_STATIC)
 
+foreach (opt IN ITEMS C CXX)
+	set (CMAKE_${opt}_FLAGS_RELEASE "${CMAKE_${opt}_FLAGS_RELEASE} /GL")
+endforeach (opt)
+
+foreach (opt IN ITEMS EXE MODULE SHARED STATIC)
+	set (CMAKE_${opt}_LINKER_FLAGS_RELEASE "${CMAKE_${opt}_LINKER_FLAGS_RELEASE} /LTCG")
+endforeach (opt)
+
 endif (MSVC)
 
 if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/sign.cmake")
