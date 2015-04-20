@@ -975,7 +975,7 @@ public:
 	/** @brief Called whenever a frame is needed */
 	WRAPPER_DECL virtual bool ReadFrame();
 
-protected:
+private:
 	/** @brief Initialize internal data after user-defined creation procedure */
 	WRAPPER_DECL virtual bool OnOpenInternal(UniMRCPAudioTermination const* term, mpf_audio_stream_t const* stm);
 	/** @brief Clean-up after OnClose() event handled */
@@ -988,6 +988,8 @@ private:
 
 	friend class UniMRCPAudioTermination;
 	friend class UniMRCPStreamRxBuffered;
+	friend class UniMRCPStreamRxMemory;
+	friend class UniMRCPStreamRxFile;
 };
 
 
@@ -1014,7 +1016,7 @@ public:
 	/** @brief Automatic data transmitter. Still can be overriden! */
 	virtual bool ReadFrame();
 
-protected:
+private:
 	virtual bool OnOpenInternal(UniMRCPAudioTermination const* term, mpf_audio_stream_t const* stm);
 	virtual void OnCloseInternal();
 
@@ -1070,7 +1072,7 @@ public:
 	/** @brief Automatic data transmitter. Still can be overriden! */
 	virtual bool ReadFrame();
 
-protected:
+private:
 	virtual void OnCloseInternal();
 
 protected:
@@ -1096,7 +1098,7 @@ public:
 	/** @brief Close the file immediately */
 	virtual void Close();
 
-protected:
+private:
 	virtual bool OnOpenInternal(UniMRCPAudioTermination const* term, mpf_audio_stream_t const* stm);
 
 private:
