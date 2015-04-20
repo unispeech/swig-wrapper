@@ -46,7 +46,6 @@
 %ignore operator new;
 %ignore operator delete;
 
-#define SAFE_ARRAYS
 #if !defined(SWIG)
 #elif defined(SWIGCSHARP)
 
