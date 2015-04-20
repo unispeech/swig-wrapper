@@ -26,7 +26,7 @@
 
 #define UW_MAJOR_VERSION 0
 #define UW_MINOR_VERSION 4
-#define UW_PATCH_VERSION 2
+#define UW_PATCH_VERSION 5
 
 #define UW_STRINGIFY(s)  UW_STRINGIFY_(s)
 #define UW_STRINGIFY_(s) #s
