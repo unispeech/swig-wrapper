@@ -217,7 +217,7 @@ if (WRAP_CSHARP)
 		set_source_files_properties (${WRAPPER_SWIG} PROPERTIES
 			SWIG_MODULE_NAME "../${WRAPPER_BASE}CSHARP_wrap")
 	endif (SWIG_HACKS)
-	set (CSHARP_EXAMPLES CSharp/UniSynth.cs CSharp/UniSynth.bat CSharp/UniSynth.sh)
+	set (CSHARP_EXAMPLES CSharp/UniSynth.cs CSharp/UniSynth.bat CSharp/UniSynth.sh CSharp/UniRecog.cs CSharp/UniRecog.bat CSharp/UniRecog.sh)
 	swig_add_module (UniMRCP-NET CSharp ${WRAPPER_SRC}
 		${CSHARP_EXAMPLES})
 	source_group (Examples FILES ${CSHARP_EXAMPLES})
@@ -247,7 +247,7 @@ if (WRAP_PYTHON)
 			SWIG_MODULE_NAME "../${WRAPPER_BASE}PYTHON_wrap")
 	endif (SWIG_HACKS)
 	include_directories (${PYTHON_INCLUDE_DIRS})
-	set (PYTHON_EXAMPLES Python/UniSynth.py Python/UniSynth.bat)
+	set (PYTHON_EXAMPLES Python/UniSynth.py Python/UniSynth.bat Python/UniRecog.py Python/UniRecog.bat)
 	swig_add_module (PyUniMRCP Python ${WRAPPER_SRC}
 		${PYTHON_EXAMPLES})
 	source_group (Examples FILES ${PYTHON_EXAMPLES})
@@ -348,6 +348,8 @@ if (WRAP_CPP)
 		COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/UniMRCP-wrapper.h" "${CMAKE_CURRENT_BINARY_DIR}/Cpp/UniMRCP-wrapper.h"
 		COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/Cpp/UniSynth.cpp" "${CMAKE_CURRENT_BINARY_DIR}/Cpp/UniSynth.cpp"
 		COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/Cpp/UniSynth.bat" "${CMAKE_CURRENT_BINARY_DIR}/Cpp/UniSynth.bat"
+		COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/Cpp/UniRecog.cpp" "${CMAKE_CURRENT_BINARY_DIR}/Cpp/UniRecog.cpp"
+		COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/Cpp/UniRecog.bat" "${CMAKE_CURRENT_BINARY_DIR}/Cpp/UniRecog.bat"
 		COMMENT "Copying C++ examples"
 		VERBATIM)
 	adjust_cflags (UniMRCpp)
@@ -355,7 +357,7 @@ if (WRAP_CPP)
 		sign_binary (UniMRCpp)
 	endif (SIGN AND BUILD_SHARED_LIBS)
 
-	option (BUILD_CPP_EXAMPLE "Build example C++ application UniSynth" ON)
+	option (BUILD_CPP_EXAMPLE "Build example C++ applications UniSynth and UniRecog" ON)
 	if (BUILD_CPP_EXAMPLE)
 		add_executable (UniSynth_Cpp
 			Cpp/UniSynth.cpp)
@@ -364,6 +366,14 @@ if (WRAP_CPP)
 		set_target_properties (UniSynth_Cpp PROPERTIES
 			RUNTIME_OUTPUT_DIRECTORY Cpp)
 		adjust_cflags (UniSynth_Cpp)
+
+		add_executable (UniRecog_Cpp
+			Cpp/UniRecog.cpp)
+		add_dependencies (UniRecog_Cpp UniMRCpp)
+		target_link_libraries (UniRecog_Cpp UniMRCpp)
+		set_target_properties (UniRecog_Cpp PROPERTIES
+			RUNTIME_OUTPUT_DIRECTORY Cpp)
+		adjust_cflags (UniRecog_Cpp)
 	endif (BUILD_CPP_EXAMPLE)
 endif (WRAP_CPP)
 

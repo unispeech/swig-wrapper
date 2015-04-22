@@ -1,9 +1,11 @@
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.concurrent.Semaphore;
 import org.unimrcp.swig.*;
 
@@ -13,6 +15,17 @@ class UniRecog
     private static String ROOT_DIR = "../../../../trunk";
     // UniMRCP profile to use for communication with server
     private static final String MRCP_PROFILE = "uni1";
+
+    // Types of streaming
+    private static enum StreamType {
+        FRAME_BY_FRAME,
+        BUFFERED,
+        MEMORY,
+        FILE
+    }
+
+    // Choose type of streaming to demonstrate
+    private static final StreamType streamType = StreamType.FILE;
 
     private static int err = 0;
 
@@ -57,14 +70,66 @@ class UniRecog
         }
     }
 
+    private static class UniRecogStreamFrames extends UniMRCPStreamRx
+    {
+        // Set to true upon RECOGNIZE's IN-PROGRESS
+        public boolean started = false;
+        // Input file descriptor
+        private FileInputStream f = null;
+        // Buffer to copy audio data to
+        private byte[] buf = null;
+
+        public UniRecogStreamFrames(String pcmfile) throws FileNotFoundException
+        {
+            f = new FileInputStream(pcmfile);
+        }
+
+        // Called when an audio frame is needed
+        public boolean ReadFrame()
+        {
+            if (!started)
+                return false;
+            int frameSize = (int) GetDataSize();
+            if (frameSize <= 0)
+                return true;
+            if (buf == null)
+                buf = new byte[frameSize];
+            try {
+                int bytesRead = f.read(buf);
+                if (bytesRead > 0) {
+                    Arrays.fill(buf, bytesRead, frameSize, (byte)0);
+                    SetData(buf);
+                    return true;
+                }
+            } catch (IOException ex) {
+            }
+            return false;
+        }
+    }
+
+
     private static class UniRecogTermination extends UniMRCPAudioTermination
     {
-        public UniMRCPStreamRxBuffered stream;
+        public UniMRCPStreamRx stream;
 
-        public UniRecogTermination(UniMRCPClientSession sess) throws IOException
+        public UniRecogTermination(UniMRCPClientSession sess, String pcmfile) throws IOException
         {
             super(sess);
-            this.stream = new UniMRCPStreamRxBuffered();
+            switch (streamType) {
+            case FRAME_BY_FRAME:
+                stream = new UniRecogStreamFrames(pcmfile);
+                break;
+            case BUFFERED:
+                stream = new UniMRCPStreamRxBuffered();
+                break;
+            case MEMORY:
+                byte[] data = Files.readAllBytes(Paths.get(pcmfile));
+                stream = new UniMRCPStreamRxMemory(data, true, UniMRCPStreamRxMemory.StreamRxMemoryEnd.SRM_NOTHING, true);
+                break;
+            case FILE:
+                stream = new UniMRCPStreamRxFile(pcmfile, 0, UniMRCPStreamRxMemory.StreamRxMemoryEnd.SRM_NOTHING, true);
+                break;
+            }
         }
 
         public UniMRCPStreamRx OnStreamOpenRx(boolean enabled, short payload_type, String name, String format, short channels, long freq)
@@ -129,14 +194,8 @@ class UniRecog
                     return Fail("RECOGNIZE request failed: " + message.GetStatusCode());
                 if (message.GetRequestState() != UniMRCPRequestState.STATE_INPROGRESS)
                     return Fail("Failed to start RECOGNIZE processing");
-
-                try {
-                    byte[] data = Files.readAllBytes(Paths.get(this.inputfile));
-                    term.stream.AddData(data);
-                }
-                catch (IOException ex) {
-                }
-
+                // Start streaming audio from the file
+                StartStreaming();
                 return true;  // Does not actually matter
             }
             if (message.GetMsgType() != UniMRCPMessageType.EVENT)
@@ -152,6 +211,27 @@ class UniRecog
                 return true;  // Does not actually matter
             }
             return Fail("Unknown message received");
+        }
+
+        private void StartStreaming()
+        {
+            switch (streamType) {
+            case FRAME_BY_FRAME:
+                ((UniRecogStreamFrames)term.stream).started = true;
+                break;
+            case BUFFERED:
+                try {
+                    byte[] data = Files.readAllBytes(Paths.get(this.inputfile));
+                    ((UniMRCPStreamRxBuffered)term.stream).AddData(data);
+                }
+                catch (IOException ex) {
+                }
+                break;
+            case MEMORY:
+            case FILE:
+                ((UniMRCPStreamRxMemory)term.stream).SetPaused(false);
+                break;
+            }
         }
     }
 
@@ -200,7 +280,7 @@ class UniRecog
             // Create a session using MRCP profile MRCP_PROFILE
             sess = new UniRecogSession(client, MRCP_PROFILE);
             // Create audio termination with capabilities
-            UniRecogTermination term = new UniRecogTermination(sess);
+            UniRecogTermination term = new UniRecogTermination(sess, inputfile);
             term.AddCapability("LPCM", UniMRCPSampleRate.SAMPLE_RATE_8000);
             // Semaphore to wait for completion
             Semaphore sem = new Semaphore(0);
