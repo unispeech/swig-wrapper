@@ -853,7 +853,8 @@ void UniMRCPStreamRxBuffered::OnCloseInternal()
 
 
 UniMRCPStreamRxMemory::UniMRCPStreamRxMemory(void const* mem, size_t size, bool copy /*= true*/, StreamRxMemoryEnd onend /*= SRM_NOTHING*/) THROWS(UniMRCPException) :
-	UniMRCPStreamRx()
+	UniMRCPStreamRx(),
+	mem(NULL)
 {
 	SetMemory(mem, size, copy, onend);
 }
@@ -867,11 +868,12 @@ UniMRCPStreamRxMemory::~UniMRCPStreamRxMemory()
 
 void UniMRCPStreamRxMemory::SetMemory(void const* mem, size_t size, bool copy /*= true*/, StreamRxMemoryEnd onend /*= SRM_NOTHING*/) THROWS(UniMRCPException)
 {
-	Close();
+	UniMRCPStreamRxMemory::Close();
 	if (copy) {
 		this->mem = static_cast<char*>(malloc(size));
 		if (!this->mem)
 			UNIMRCP_THROW("Not enough memory to copy memory block");
+		memcpy(const_cast<char*>(this->mem), mem, size);
 		this->copied = true;
 	} else {
 		this->mem = static_cast<char const*>(mem);
@@ -1254,8 +1256,8 @@ apt_bool_t UniMRCPAudioTermination::StmReadFrame(mpf_audio_stream_t* stream, mpf
 	bool ret;
 	UniMRCPAudioTermination* t = reinterpret_cast<UniMRCPAudioTermination*>(stream->obj);
 	if (t && t->streamRx) {
-		ret = t->streamRx->ReadFrame();
 		t->streamRx->frm = frame;
+		ret = t->streamRx->ReadFrame();
 		if (t->streamRx->dtmf_gen)
 			mpf_dtmf_generator_put_frame(t->streamRx->dtmf_gen, frame);
 	} else
