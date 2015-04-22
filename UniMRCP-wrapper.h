@@ -1094,6 +1094,7 @@ class UniMRCPStreamRxFile : public UniMRCPStreamRxMemory {
 public:
 	/** @brief Create in UniMRCPAudioTermination::OnStreamOpenRx() */
 	WRAPPER_DECL UniMRCPStreamRxFile(char const* filename, size_t offset = 0, StreamRxMemoryEnd onend = SRM_NOTHING);
+	WRAPPER_DECL ~UniMRCPStreamRxFile();
 
 	/** @brief Close the file immediately */
 	virtual void Close();

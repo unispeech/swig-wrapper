@@ -63,6 +63,7 @@
 
 #ifdef _MSC_VER
 #	define snprintf _snprintf
+#	define strdup _strdup
 #endif
 
 /** @brief Throw UniMRCP exception from here with message */
@@ -942,11 +943,20 @@ void UniMRCPStreamRxMemory::OnCloseInternal()
 
 UniMRCPStreamRxFile::UniMRCPStreamRxFile(char const* filename, size_t offset /*= 0*/, StreamRxMemoryEnd onend /*= SRM_NOTHING*/) :
 	UniMRCPStreamRxMemory(NULL, 0, false, onend),
-	filename(filename),
+	filename(strdup(filename)),
 	offset(offset),
 	file(NULL),
 	mmap(NULL)
 {
+}
+
+
+UniMRCPStreamRxFile::~UniMRCPStreamRxFile()
+{
+	if (filename) {
+		free(const_cast<char*>(filename));
+		filename = NULL;
+	}
 }
 
 
