@@ -142,6 +142,9 @@
 		$1 = ($1_ltype) buff;
 		$2 = ($2_ltype) size;
 	}
+	%typemap(typecheck) (void const* buf, size_t len) {
+		$1 = PyObject_CheckBuffer($input);
+	}
 	%apply (void const* buf, size_t len) { (void const* mem, size_t size) }
 
 	%typemap(in) (void* buf, size_t len)
@@ -149,10 +152,13 @@
 		res = PyObject_AsWriteBuffer($input, &buff, &size);
 		if (res<0) {
 			PyErr_Clear();
-			%argument_fail(res, "(void* bbuf, size_t len)", $symname, $argnum);
+			%argument_fail(res, "(void* buf, size_t len)", $symname, $argnum);
 		}
 		$1 = ($1_ltype) buff;
 		$2 = ($2_ltype) size;
+	}
+	%typemap(typecheck) (void* buf, size_t len) {
+		$1 = PyObject_CheckBuffer($input);
 	}
 
 	%ignore UniMRCPException;
