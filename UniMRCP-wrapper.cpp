@@ -853,11 +853,11 @@ void UniMRCPStreamRxBuffered::OnCloseInternal()
 }
 
 
-UniMRCPStreamRxMemory::UniMRCPStreamRxMemory(void const* mem, size_t size, bool copy /*= true*/, StreamRxMemoryEnd onend /*= SRM_NOTHING*/) THROWS(UniMRCPException) :
+UniMRCPStreamRxMemory::UniMRCPStreamRxMemory(void const* mem, size_t size, bool copy /*= true*/, StreamRxMemoryEnd onend /*= SRM_NOTHING*/, bool paused /*= false*/) THROWS(UniMRCPException) :
 	UniMRCPStreamRx(),
 	mem(NULL)
 {
-	SetMemory(mem, size, copy, onend);
+	SetMemory(mem, size, copy, onend, paused);
 }
 
 
@@ -867,7 +867,7 @@ UniMRCPStreamRxMemory::~UniMRCPStreamRxMemory()
 }
 
 
-void UniMRCPStreamRxMemory::SetMemory(void const* mem, size_t size, bool copy /*= true*/, StreamRxMemoryEnd onend /*= SRM_NOTHING*/) THROWS(UniMRCPException)
+void UniMRCPStreamRxMemory::SetMemory(void const* mem, size_t size, bool copy /*= true*/, StreamRxMemoryEnd onend /*= SRM_NOTHING*/, bool paused /*= false*/) THROWS(UniMRCPException)
 {
 	UniMRCPStreamRxMemory::Close();
 	if (copy) {
@@ -882,6 +882,7 @@ void UniMRCPStreamRxMemory::SetMemory(void const* mem, size_t size, bool copy /*
 	this->size = size;
 	this->onend = onend;
 	pos = 0;
+	this->paused = paused;
 }
 
 
@@ -902,6 +903,12 @@ void UniMRCPStreamRxMemory::Close()
 }
 
 
+void UniMRCPStreamRxMemory::SetPaused(bool paused)
+{
+	this->paused = paused;
+}
+
+
 void UniMRCPStreamRxMemory::OnEndOfPlayback()
 {
 }
@@ -909,7 +916,7 @@ void UniMRCPStreamRxMemory::OnEndOfPlayback()
 
 bool UniMRCPStreamRxMemory::ReadFrame()
 {
-	if (!mem || !size)
+	if (!mem || !size || paused)
 		return false;
 	if ((pos >= size) && (onend == SRM_ZEROS)) {
 		SetData(NULL, 0);  // Send out zeros
@@ -941,8 +948,8 @@ void UniMRCPStreamRxMemory::OnCloseInternal()
 }
 
 
-UniMRCPStreamRxFile::UniMRCPStreamRxFile(char const* filename, size_t offset /*= 0*/, StreamRxMemoryEnd onend /*= SRM_NOTHING*/) :
-	UniMRCPStreamRxMemory(NULL, 0, false, onend),
+UniMRCPStreamRxFile::UniMRCPStreamRxFile(char const* filename, size_t offset /*= 0*/, StreamRxMemoryEnd onend /*= SRM_NOTHING*/, bool paused /*= false*/) :
+	UniMRCPStreamRxMemory(NULL, 0, false, onend, paused),
 	filename(strdup(filename)),
 	offset(offset),
 	file(NULL),
@@ -990,7 +997,7 @@ bool UniMRCPStreamRxFile::OnOpenInternal(UniMRCPAudioTermination const* term, mp
 		apr_file_close(file);
 		return false;
 	}
-	SetMemory(static_cast<char*>(mmap->mm) + offset - poffset, static_cast<apr_size_t>(finfo.size) - offset, false, onend);
+	SetMemory(static_cast<char*>(mmap->mm) + offset - poffset, static_cast<apr_size_t>(finfo.size) - offset, false, onend, paused);
 	return true;
 }
 

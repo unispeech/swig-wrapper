@@ -1056,15 +1056,17 @@ public:
 	};
 
 	/** @brief Create in UniMRCPAudioTermination::OnStreamOpenRx() */
-	WRAPPER_DECL UniMRCPStreamRxMemory(void const* mem, size_t size, bool copy = true, StreamRxMemoryEnd onend = SRM_NOTHING) THROWS(UniMRCPException);
+	WRAPPER_DECL UniMRCPStreamRxMemory(void const* mem, size_t size, bool copy = true, StreamRxMemoryEnd onend = SRM_NOTHING, bool paused = false) THROWS(UniMRCPException);
 	WRAPPER_DECL virtual ~UniMRCPStreamRxMemory();
 
 	/** @brief Set data to send out */
-	WRAPPER_DECL void SetMemory(void const* mem, size_t size, bool copy = true, StreamRxMemoryEnd onend = SRM_NOTHING) THROWS(UniMRCPException);
+	WRAPPER_DECL void SetMemory(void const* mem, size_t size, bool copy = true, StreamRxMemoryEnd onend = SRM_NOTHING, bool paused = false) THROWS(UniMRCPException);
 	/** @brief Rewind memory block and play from the start */
 	WRAPPER_DECL void Rewind();
 	/** @brief Stop playback and free the memory block if copied */
 	virtual void Close();
+	/** @brief If paused is true, no streaming occurs */
+	WRAPPER_DECL void SetPaused(bool paused);
 
 public:
 	/** @brief Called when end of the memory block reached */
@@ -1077,6 +1079,7 @@ private:
 
 protected:
 	StreamRxMemoryEnd onend; ///< What to do when playback complete
+	bool              paused;///< If paused is true, no streaming occurs
 
 private:
 	char const* mem;         ///< Pointer to the memory block
@@ -1093,7 +1096,7 @@ private:
 class UniMRCPStreamRxFile : public UniMRCPStreamRxMemory {
 public:
 	/** @brief Create in UniMRCPAudioTermination::OnStreamOpenRx() */
-	WRAPPER_DECL UniMRCPStreamRxFile(char const* filename, size_t offset = 0, StreamRxMemoryEnd onend = SRM_NOTHING);
+	WRAPPER_DECL UniMRCPStreamRxFile(char const* filename, size_t offset = 0, StreamRxMemoryEnd onend = SRM_NOTHING, bool paused = false);
 	WRAPPER_DECL ~UniMRCPStreamRxFile();
 
 	/** @brief Close the file immediately */
