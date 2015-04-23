@@ -172,10 +172,7 @@ set (SOFIA_PARTS su nua url sip msg sdp nta nea soa iptsec bnf features tport)
 if (WIN32)
 	set (SOFIA_PARTS ${SOFIA_PARTS} win32)
 endif (WIN32)
-set (_sofia_hints /usr/loca/include/sofia-sip-1.12
-	/usr/loca/include/sofia-sip-1.1?
-	/usr/local/include/sofia-sip-1.*
-	/usr/local/include/sofia-sip-*)
+set (_sofia_hints)
 if (SOFIA_SOURCE_DIR)
 	foreach (part IN LISTS SOFIA_PARTS)
 		if (part STREQUAL win32)
@@ -191,7 +188,15 @@ if (SOFIA_SOURCE_DIR)
 			set (_sofia_dirs ${_sofia_dirs} ${SOFIA_PTW32_INCLUDE_DIR})
 		endif (SOFIA_PTW32_INCLUDE_DIR)
 	endif (WIN32 AND SOFIA_STATIC)
+	set (_sofia_hints ${_sofia_hints} "${SOFIA_SOURCE_DIR}/include/sofia-sip-1.12"
+		"${SOFIA_SOURCE_DIR}/include/sofia-sip-1.1?"
+		"${SOFIA_SOURCE_DIR}/include/sofia-sip-1.*"
+		"${SOFIA_SOURCE_DIR}/include/sofia-sip-*")
 endif (SOFIA_SOURCE_DIR)
+set (_sofia_hints ${_sofia_hints} /usr/local/include/sofia-sip-1.12
+	/usr/local/include/sofia-sip-1.1?
+	/usr/local/include/sofia-sip-1.*
+	/usr/local/include/sofia-sip-*)
 foreach (part IN LISTS SOFIA_PARTS)
 	if (part STREQUAL features)
 		set (header sofia_features.h)
@@ -202,7 +207,7 @@ foreach (part IN LISTS SOFIA_PARTS)
 	else (part STREQUAL features)
 		set (header ${part}.h)
 	endif (part STREQUAL features)
-	find_path (SOFIA_INC_${part} sofia-sip/${header}
+	find_path (SOFIA_INC_${part} "sofia-sip/${header}"
 		HINTS ${_sofia_hints})
 	mark_as_advanced (SOFIA_INC_${part})
 	if (SOFIA_INC_${part})

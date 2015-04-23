@@ -118,10 +118,11 @@ else (APR_STATIC)
 	set (APR_DEFINES)
 endif (APR_STATIC)
 
-set (_apr_hints /usr/loca/include/apr-1)
+set (_apr_hints)
 if (APR_SOURCE_DIR)
 	set (_apr_hints ${_apr_hints} "${APR_SOURCE_DIR}/include" "${APR_SOURCE_DIR}/include/apr-1")
 endif (APR_SOURCE_DIR)
+set (_apr_hints ${_apr_hints} /usr/local/include/apr-1)
 find_path (APR_INCLUDE_DIR apr_version.h
 	HINTS ${_apr_hints})
 mark_as_advanced (APR_INCLUDE_DIR)

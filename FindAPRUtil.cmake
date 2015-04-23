@@ -133,10 +133,11 @@ if (APU_STATIC AND APU_LIBRARIES)
 	endif (APU_XML_LIBRARIES)
 endif (APU_STATIC AND APU_LIBRARIES)
 
-set (_apu_hints /usr/loca/include/apr-1)
+set (_apu_hints)
 if (APU_SOURCE_DIR)
 	set (_apu_hints ${_apu_hints} "${APU_SOURCE_DIR}/include" "${APU_SOURCE_DIR}/include/apr-1")
 endif (APU_SOURCE_DIR)
+set (_apu_hints ${_apu_hints} /usr/local/include/apr-1)
 find_path (APU_INCLUDE_DIR apu_version.h
 	HINTS ${_apu_hints})
 mark_as_advanced (APU_INCLUDE_DIR)

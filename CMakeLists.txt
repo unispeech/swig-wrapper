@@ -40,14 +40,28 @@ find_path (UNIMRCP_SOURCE_DIR "build/uni_version.h" PATHS
 	"${PROJECT_SOURCE_DIR}/../../unimrcp/"
 	"${PROJECT_SOURCE_DIR}/../../*/"
 	"${PROJECT_SOURCE_DIR}/../")
+find_path (UNIMRCP_SOURCE_DIR "include/uni_version.h" PATHS
+	/usr/local/unimrcp
+	/usr/local)
 set (UNIMRCP_SOURCE_DIR "${UNIMRCP_SOURCE_DIR}" CACHE PATH "Path to UniMRCP source directory")
 set_property (CACHE UNIMRCP_SOURCE_DIR PROPERTY HELPSTRING "Path to UniMRCP source directory")
-set (APR_SOURCE_DIR "${UNIMRCP_SOURCE_DIR}/libs/apr" CACHE PATH "Path to APR source directory")
-set (APU_SOURCE_DIR "${UNIMRCP_SOURCE_DIR}/libs/apr-util" CACHE PATH "Path to APR-util source directory")
-#if (WIN32)
-#	set (APRICONV_DIR "${UNIMRCP_SOURCE_DIR}/libs/apr-iconv" CACHE PATH "Path to APR-iconv source directory")
-#endif (WIN32)
-set (SOFIA_SOURCE_DIR "${UNIMRCP_SOURCE_DIR}/libs/sofia-sip" CACHE PATH "Path to SofiaSIP source directory")
+if (IS_DIRECTORY "${UNIMRCP_SOURCE_DIR}/include")
+	# UNIMRCP_SOURCE_DIR looks like an installation prefix
+	set (APR_SOURCE_DIR "${UNIMRCP_SOURCE_DIR}" CACHE PATH "Path to APR source directory")
+	set (APU_SOURCE_DIR "${UNIMRCP_SOURCE_DIR}" CACHE PATH "Path to APR-util source directory")
+	#if (WIN32)
+	#	set (APRICONV_DIR "${UNIMRCP_SOURCE_DIR}" CACHE PATH "Path to APR-iconv source directory")
+	#endif (WIN32)
+	set (SOFIA_SOURCE_DIR "${UNIMRCP_SOURCE_DIR}" CACHE PATH "Path to SofiaSIP source directory")
+else (IS_DIRECTORY "${UNIMRCP_SOURCE_DIR}/include")
+	# UNIMRCP_SOURCE_DIR looks like a source tree
+	set (APR_SOURCE_DIR "${UNIMRCP_SOURCE_DIR}/libs/apr" CACHE PATH "Path to APR source directory")
+	set (APU_SOURCE_DIR "${UNIMRCP_SOURCE_DIR}/libs/apr-util" CACHE PATH "Path to APR-util source directory")
+	#if (WIN32)
+	#	set (APRICONV_DIR "${UNIMRCP_SOURCE_DIR}/libs/apr-iconv" CACHE PATH "Path to APR-iconv source directory")
+	#endif (WIN32)
+	set (SOFIA_SOURCE_DIR "${UNIMRCP_SOURCE_DIR}/libs/sofia-sip" CACHE PATH "Path to SofiaSIP source directory")
+endif (IS_DIRECTORY "${UNIMRCP_SOURCE_DIR}/include")
 
 if (MSVC)
 
