@@ -84,7 +84,7 @@ class UniRecogTermination(UniMRCPAudioTermination):
             data = open(pcmfile, "rb").read()
             self.stream = UniMRCPStreamRxMemory(data, True, UniMRCPStreamRxMemory.SRM_NOTHING, True)
         elif streamType == ST_FILE:
-            self.stream = UniMRCPStreamRxFile(pcmfile, 0, SRM_NOTHING, True)
+            self.stream = UniMRCPStreamRxFile(pcmfile, 0, UniMRCPStreamRxMemory.SRM_NOTHING, True)
 
     def OnStreamOpenRx(self, enabled, payload_type, name, format, channels, freq):
         # Configure outgoing stream here
