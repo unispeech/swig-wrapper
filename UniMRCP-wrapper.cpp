@@ -667,7 +667,11 @@ bool UniMRCPStreamRx::OnOpenInternal(UniMRCPAudioTermination const* term, mpf_au
 		dtmf_gen = mpf_dtmf_generator_create_ex(stm,
 			term->dg_band ? static_cast<mpf_dtmf_generator_band_e>(term->dg_band) :
 				(stm->rx_event_descriptor ? MPF_DTMF_GENERATOR_OUTBAND : MPF_DTMF_GENERATOR_INBAND),
+#if  UNI_VERSION_AT_LEAST(1,8,0)
 			term->dg_tone, term->dg_silence, DTMF_FRAME_DURATION, mrcp_application_session_pool_get(term->sess));
+#else
+			term->dg_tone, term->dg_silence, mrcp_application_session_pool_get(term->sess));
+#endif
 		if (!dtmf_gen) {
 			apt_log(APT_LOG_MARK, APT_PRIO_WARNING, "%s StreamOpenRx: Failed to create DTMF generator",
 				swig_target_platform);
@@ -1229,7 +1233,11 @@ apt_bool_t UniMRCPAudioTermination::StmOpenRx(mpf_audio_stream_t* stream, mpf_co
 	UniMRCPStreamRx* sr;
 	if (d)
 		sr = t->OnStreamOpenRx(d->enabled == TRUE, d->payload_type, d->name.buf,
+#if  UNI_VERSION_AT_LEAST(1,8,0)
 			NULL, d->channel_count, d->sampling_rate);
+#else
+			d->format.buf, d->channel_count, d->sampling_rate);
+#endif
 	else
 		sr = t->OnStreamOpenRx(false, 0, NULL, NULL, 0, 0);
 	apt_log(APT_LOG_MARK, APT_PRIO_DEBUG, "%s StreamOpenRx: return %pp",
@@ -1298,7 +1306,11 @@ apt_bool_t UniMRCPAudioTermination::StmOpenTx(mpf_audio_stream_t* stream, mpf_co
 	UniMRCPStreamTx* st;
 	if (d)
 		st = t->OnStreamOpenTx(d->enabled == TRUE, d->payload_type, d->name.buf,
+#if  UNI_VERSION_AT_LEAST(1,8,0)
 			NULL, d->channel_count, d->sampling_rate);
+#else
+			d->format.buf, d->channel_count, d->sampling_rate);
+#endif
 	else
 		st = t->OnStreamOpenTx(false, 0, NULL, NULL, 0, 0);
 	apt_log(APT_LOG_MARK, APT_PRIO_DEBUG, "%s StreamOpenTx: return %pp",
